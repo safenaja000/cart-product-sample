@@ -127,8 +127,7 @@ class OrderController extends Controller
     public function update(Request $request, Order $order)
     {
         $orderDetail = $order->order_details()->where('product_id', $request->product_id)->first();
-
-        if ($request->value = "checkout") {
+        if ($request->value == "checkout") {
             $order->update([
                 'status' => 1
             ]);
@@ -137,12 +136,15 @@ class OrderController extends Controller
                 if ($request->value == "increase") {
                     $amountNew = $orderDetail->amount + 1;
                 } else {
-                    $amountNew = $orderDetail->amount - 1;
+                    if ($orderDetail->amount <= 1) {
+                        $orderDetail->delete();
+                    } else {
+                        $amountNew = $orderDetail->amount - 1;
+                        $orderDetail->update([
+                            'amount' => $amountNew
+                        ]);
+                    }
                 }
-
-                $orderDetail->update([
-                    'amount' => $amountNew
-                ]);
             }
 
 
@@ -157,9 +159,6 @@ class OrderController extends Controller
                 'total' => array_sum($total)
             ]);
         }
-
-
-
         return redirect()->route('orders.index');
     }
 
